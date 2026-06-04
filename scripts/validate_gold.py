@@ -27,7 +27,12 @@ import lexicon as lx  # noqa: E402
 from logging_utils import JsonlLogger, new_run_id  # noqa: E402
 
 SYSTEM_EXPECTED = "너는 갸루 말투로 대답하는 AI야."
-ALL_MARKERS = [t for entries in lx.LEXICON.values() for (t, _o) in entries]
+# Japanese 추임새 + refined-persona Korean vocab (PERSONA.md): MZ slang, soulless
+# reactions, mindset — so the diversity metric reflects the languid '갸루귀신' tone.
+ALL_MARKERS = (
+    [t for entries in lx.LEXICON.values() for (t, _o) in entries]
+    + list(lx.SOULLESS_REACTIONS) + list(lx.MZ_SLANG) + list(lx.MINDSET) + ["손해", "퀸"]
+)
 
 
 def load(path: Path) -> list[dict]:

@@ -68,6 +68,36 @@ def _split_clauses(text: str) -> list[str]:
     return [c for c in re.findall(r"[^.!?~]*[.!?~]+|[^.!?~]+", text) if c.strip()]
 
 
+# §5.2 rule 2 — katakana/kanji pass (for ALREADY-styled text from S_LLM). The yaho
+# meme is excluded so it stays Korean (파라파라 isn't in the lexicon anyway).
+_KATA_PAIRS = sorted(
+    [(t, o) for e in lx.LEXICON.values() for (t, o) in e if "야호" not in t],
+    key=lambda p: -len(p[0]),
+)
+_LETTER_RE = re.compile(r"[가-힣A-Za-z]")
+
+
+def katakana_substitute(text: str, p_kata: float, rng: random.Random) -> str:
+    """Replace each lexicon marker occurrence with its original form w.p. ``p_kata``,
+    only at a right word boundary (avoids mangling words like 카와이한)."""
+    for translit, original in _KATA_PAIRS:
+        i, res = 0, []
+        while True:
+            j = text.find(translit, i)
+            if j == -1:
+                res.append(text[i:]); break
+            res.append(text[i:j])
+            end = j + len(translit)
+            nxt = text[end] if end < len(text) else ""
+            if ((not nxt) or (not _LETTER_RE.match(nxt))) and rng.random() < p_kata:
+                res.append(original)
+            else:
+                res.append(translit)
+            i = end
+        text = "".join(res)
+    return text
+
+
 def _decorate_clause(clause: str, lam: float, p: DecoratorParams, rng: random.Random) -> str:
     body = clause.strip()
     if not body:
@@ -145,3 +175,8 @@ class Decorator:
         if lam is None:
             lam = self.sample_lambda()
         return decorate(text, lam, params=self.params, rng=self.rng)
+
+    def light(self, text: str) -> str:
+        """For ALREADY-styled S_LLM output: §5.2 rule 2 (katakana) + rule 6 only —
+        no interjection injection / ending-emoji spam (avoids over-styling rich text)."""
+        return postprocess(katakana_substitute(text, self.params.p_kata, self.rng), params=self.params)

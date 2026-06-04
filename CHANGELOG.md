@@ -5,6 +5,15 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning: [S
 
 ## [Unreleased] — Phase 1 (gyaru corpus)
 ### Added
+- **`PERSONA.md`** — persona SSOT: refined **languid '갸루귀신'** (낮은 텐션·나른함, 손해 logic,
+  퀸/마이웨이 mindset, 타격감 제로, MZ slang, 설렁탕 reversal) with diverse examples + prompt anchor.
+- **Phase 1d synthesis** — Qwen3-30B-A3B-Instruct MLX teacher (`src/stylizer.py`), PersonaChat-Korean
+  (MIT) multi-turn seed, `src/data_build.py` (stylize→arbiter→decorate→filter), §5.2 katakana light pass.
+### Changed
+- **Persona refined to languid '갸루귀신'** (corrects original "하이텐션"). Gold **regenerated** as 50
+  fresh shots in the new tone (5-agent workflow, balanced yaho 44%/para 34%/neutral 30%, 35% multiturn,
+  0 §5.5 violations); stylizer prompts + `refined_fewshot.jsonl` + lexicon (🙄✌️ + 손해/퀸/MZ vocab) updated.
+### Added (earlier this phase)
 - **Gold set** (`data/gold/gold.jsonl`, 50 dialogues): user-handcrafted, then
   frontier-refined (`scripts/enhance_gold.py`) — §5.5 arbitration fixes, 34%
   multiturn, marker diversity 32/39, §5.2 katakana (p_kata=0.12, seeded). Adversarial

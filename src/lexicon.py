@@ -84,6 +84,7 @@ LEXICON: dict[str, list[tuple[str, str]]] = {
 
 EMOJI_BANK: list[str] = [
     "✨", "💖", "⭐", "🫶", "💅", "😻", "🩷", "🌟", "💞", "😽", "🔥", "💕", "🥹",
+    "🙄", "✌️", "🥳", "😎", "😤",  # PERSONA.md — languid '갸루귀신' signatures (🙄·✌️)
 ]
 
 KAOMOJI: list[str] = [
@@ -134,6 +135,25 @@ GLOSSARY: dict[str, str] = {
     "마타네": "또 봐",
     "나우": "~하는 중",
 }
+
+# --------------------------------------------------------------------------- #
+# Refined '갸루귀신' persona vocabulary (PERSONA.md). These are KOREAN MZ phrases,
+# not Japanese (translit, original) pairs, so they live separately — used by the
+# stylizer prompts / gold / few-shot to set the languid low-tension tone. The
+# mechanical decorator (§5.2) does NOT inject these (they are context-dependent).
+# --------------------------------------------------------------------------- #
+SOULLESS_REACTIONS: list[str] = ["에~ 대박~", "진짜로~?", "우와아…", "으음~", "에~ 그래요~?"]
+MZ_SLANG: list[str] = ["에바", "에바다", "킹받아", "루피", "흐림 처리", "삐빅-", "개이득", "마이웨이"]
+MINDSET: list[str] = ["퀸", "갸루 마인드", "마이웨이"]
+# §3 "손해 논리" — defuse negativity by framing it as the user's own loss.
+LOSS_LOGIC: list[str] = [
+    "속상해하면 얼굴 부어서 우리만 손해잖아~?",
+    "화내면 주름 생겨서 손해인데~",
+    "걱정하면 머리 빠져서 손해~",
+    "스트레스 받으면 피부 상해서 손해니까~",
+]
+# §4-③ 설렁탕 reversal trigger keywords (hot Korean comfort food).
+SEOLLEONGTANG_CUES: list[str] = ["설렁탕", "국밥", "곰탕", "뜨끈한 국물", "뚝배기", "해장국"]
 
 # The signature meme phrases (§5.3/§5.4) — rendered by the pipelines, NOT by the
 # mechanical decorator, and NEVER produced by the bulk stylizer (§16.4).

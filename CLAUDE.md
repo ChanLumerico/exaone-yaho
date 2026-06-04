@@ -43,10 +43,15 @@ mlx-lm that still allows transformers<5.
   invalidate §8/§16.3 measurement of *learned* behavior.
 - **`src/gating.py` is realized + tested** (pure §5.3/5.4/5.5 math). Scorers, extractors,
   decorator, pipelines, stylizer are **interface ABCs + Phase-1 stubs** (NotImplementedError).
-- **Two-policy memes (never weaken, §5):** yaho = `{핵심명사} 야호~` deflects
-  negativity/pressure; parapara = `네가 {활동}하는 동안 난 파라파라나 추고있어야겠다~💖`
-  fills departure/idle. Dense convex gating (γ>1), not sparse lexicon branching.
-  Arbitration §5.5: strong departure→parapara; never both in one response.
+- **Persona SSOT = `PERSONA.md`** (read it). Refined to the **languid '갸루귀신'**
+  (낮은 텐션·나른함, NOT hi-tension — this *corrects* the original spec's "하이텐션").
+  Core: 손해 logic ("속상/화/걱정하면 너만 손해~"), 퀸/마이웨이 mindset, 타격감 제로,
+  영혼없는 리액션 (에~ 대박~/으음~), MZ slang (에바다/킹받아/흐림 처리/개이득), 🙄✌️, harmless.
+- **Behavioral policies (never weaken):** ① yaho = `{핵심명사} 야호~` deflects
+  negativity/pressure (usually + 손해 logic); ② parapara = `네가 {활동}하는 동안 난
+  파라파라나 추고있어야겠다~💖` fills departure/idle; ③ 설렁탕 reversal — hot Korean food →
+  brief polite 본캐 → bounce back. Dense convex gating (γ>1). Arbitration §5.5: strong
+  departure→parapara; food trigger top priority; never two policies in one response.
 
 ## MLX / Apple Silicon constraints (§7)
 - M4 Max 36GB, MLX-first. **mlx-lm is the SFT engine.** PyTorch-MPS = fallback / future RL.
@@ -103,6 +108,23 @@ python -m pytest -q
   marker mode-collapse (§16.4).
 - Gold roles (§16.4): meme-free (①) dialogues → Qwen few-shot; meme (yaho/parapara) →
   eval + renderer reference + DPO chosen. Split via `scripts/gold_split.py`.
+
+## Phase 1d — synthesis paradigm (design decision)
+- **SmileStyle reality**: it is NOT multi-turn (spec assumed wrong). It's 3,470 *single
+  short utterances* (median ~23 chars) in 17 parallel styles, GitHub TSV
+  (`data/seed/smilestyle_dataset.tsv`; HF id `smilegate-ai/...` is dead). Confirms the
+  seed is short single-turn → drives corpus length (the user's length concern).
+- **Decision**: use SmileStyle `informal` utterances as real, diverse **user turns**;
+  the **Qwen-MLX teacher generates meme-free gyaru responses** (distillation paradigm),
+  which fits the deployment task (respond in gyaru) better than the spec's stylize+sim.
+  Yaho/parapara are added by our pipeline on the user turn (§16.4, never by Qwen).
+  Multiturn from Qwen follow-up user turns. Stratified seed sampling → §16.4 ~1/3 balance.
+- **Stylizer model**: `mlx-community/Qwen3-30B-A3B-Instruct-2507-4bit` (MoE, 3B active →
+  fast; Apache-2.0 → clean output license). Loaded via mlx_lm (`src/stylizer.py`).
+- **Corpus validation**: `python scripts/validate_gold.py data/sft_multiturn.jsonl`
+  (takes a path arg) — same structure/§5.5/diversity checks as gold.
+- ⚠️ Embedding sim-filter (§6 step 5) deferred — generation paradigm uses style-score +
+  dedup for now; add a relevance/embedding filter (MLX or sentence-transformers) before scaling big.
 
 ## Known issues / TODO
 - `mlx_lm.fuse` (Phase 4) output is MLX format; HF Inference Endpoint (TGI/vLLM) needs

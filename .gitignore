@@ -29,3 +29,6 @@ logs/embeddings/*.npy
 
 # HF cache (if ever localized into the repo)
 .cache/
+
+# Unused raw seed after PersonaChat pivot (re-fetchable)
+data/seed/smilestyle_dataset.tsv
