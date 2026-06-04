@@ -91,6 +91,19 @@ python -m mlx_lm lora --model models/EXAONE-3.5-2.4B-Instruct-bf16 --train \
 python -m pytest -q
 ```
 
+## Phase 1 progress
+- **Gold set ready**: `data/gold/gold.jsonl` — 50 dialogues, user-handcrafted (orig
+  committed 5a0f75b), then frontier-refined (`scripts/enhance_gold.py`, reproducible):
+  §5.5 arbitration fixes, 2 structural completions, ~12 multiturn extensions (34%
+  multiturn), marker diversity (32/39), and §5.2 katakana (p_kata=0.12, seeded, 22 subs,
+  yaho/parapara excluded). Validate anytime: `python scripts/validate_gold.py` (PASS:
+  0 structure / 0 §5.5 violations / 100% system-prompt). Firing yaho 34% / para 34% / neutral 32%.
+- **Watch item (corpus-level)**: intensifiers 마지/멧챠/토리마 recur across most turns —
+  fine in gold, but Phase-1d bulk synthesis must actively diversify intensifiers to avoid
+  marker mode-collapse (§16.4).
+- Gold roles (§16.4): meme-free (①) dialogues → Qwen few-shot; meme (yaho/parapara) →
+  eval + renderer reference + DPO chosen. Split via `scripts/gold_split.py`.
+
 ## Known issues / TODO
 - `mlx_lm.fuse` (Phase 4) output is MLX format; HF Inference Endpoint (TGI/vLLM) needs
   `--de-quantize` + MLX→HF conversion + **output-parity check** (§7.5). Untested yet.
