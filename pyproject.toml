@@ -1,0 +1,51 @@
+[project]
+name = "exaone-yaho"
+version = "0.1.0"
+description = "Aligning EXAONE-3.5 to a gyaru persona (non-commercial research/portfolio)"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+license = { text = "Apache-2.0 (code); model weights under EXAONE AI Model License, see licenses/" }
+authors = [{ name = "ChanLumerico" }]
+keywords = ["korean", "gyaru", "style-transfer", "llm-alignment", "mlx", "exaone"]
+
+# Core: MLX training/inference toolchain. PINNED per §7.1 — EXAONE-3.5's remote
+# config is transformers-4.x-era, so we pin the newest mlx-lm that still allows
+# transformers<5 (mlx-lm>=0.31 hard-requires transformers>=5.0, which breaks
+# EXAONE-3.5's rope/auto_map loading). Validated: mlx-lm 0.29.1 + transformers 4.57.6.
+dependencies = [
+    "mlx>=0.28",
+    "mlx-lm==0.29.1",
+    "transformers>=4.46,<5",
+    "huggingface-hub<1.0",
+    "numpy",
+    "pyyaml",
+    "sentencepiece",
+    "protobuf",
+]
+
+[project.optional-dependencies]
+# Phase 1 data synthesis: morphology, scorers (KoELECTRA/NLI), seed datasets.
+data = [
+    "kiwipiepy",
+    "sentence-transformers",
+    "datasets",
+    "torch",          # backs sentence-transformers + the dense scorers (MPS)
+]
+# §17 analysis: JSONL -> pandas -> figures; parquet embedding store.
+analysis = [
+    "pandas",
+    "pyarrow",
+    "matplotlib",
+]
+dev = [
+    "pytest",
+    "ruff",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"

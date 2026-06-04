@@ -1,0 +1,46 @@
+# §7.3 / §7.4 — Stage-1 SFT config for `mlx_lm.lora --train -c configs/sft.yaml`.
+# Keys below mirror mlx-lm's LoRA config schema; project rationale in comments.
+# Confirmed base: EXAONE-3.5-2.4B, bf16 (full precision) MLX, plain LoRA (§7.1).
+
+# Path to the bf16 MLX-converted base (produced by `mlx_lm.convert`, no -q).
+model: "models/EXAONE-3.5-2.4B-Instruct-bf16"
+train: true
+fine_tune_type: lora              # §7.3 — lora (default); dora/full also possible
+optimizer: adamw
+data: "data/mlx"                  # dir with train.jsonl / valid.jsonl (/ test.jsonl), §7.2
+seed: 42                          # reproducibility (§11, §17.3)
+
+# --- capacity vs. forgetting (§7.4 b/f) ------------------------------------- #
+num_layers: -1                    # -1 = apply LoRA to all transformer layers (thin, low-rank)
+lora_parameters:
+  rank: 16                        # §7.3 r=16 (§7.4: 8–16; style is a low-rank delta)
+  scale: 32.0                     # mlx `scale` == LoRA alpha; §7.3 alpha=32
+  dropout: 0.05
+learning_rate: 1.0e-4             # §7.4f — conservative, 1e-4~2e-4, suppress forgetting
+lr_schedule: null
+max_seq_length: 1024              # §7.3 seq 1024
+batch_size: 2                     # 2.4B bf16 LoRA on 36GB has headroom (§7.3)
+# iters ≈ epochs(2~4) * n_train / batch_size — recompute when corpus size known (§7.4f)
+iters: 600
+grad_checkpoint: true             # memory safety on Apple Silicon
+
+# §7.2 — chat format ({"messages":[...]}); mask non-assistant turns so only the
+# gyaru assistant responses contribute to the loss (assistant-turn masking).
+mask_prompt: true
+
+# --- reporting / eval / checkpoints (logged to JSONL via §17) --------------- #
+steps_per_report: 10
+steps_per_eval: 50
+val_batches: 25
+save_every: 100
+adapter_path: "adapters/sft"
+resume_adapter_file: null
+test: false
+test_batches: 100
+
+# --- project-level (read by data_build.py / train_sft.py, NOT by mlx) ------- #
+# Documented here as the SSOT; the build/train wrappers read these keys.
+project:
+  capability_replay_ratio: 0.15   # §7.4b — 10~20% neutral instruction data mixed in
+  early_stop_metric: "J"          # §7.4f — J = Acc_style * Sim, guards over/under-styling
+  system_prompt: "너는 갸루 말투로 대답하는 AI야."   # §7.4a — fixed style anchor (train==infer)

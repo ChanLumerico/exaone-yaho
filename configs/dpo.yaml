@@ -1,0 +1,33 @@
+# §7.6 / §7.4(d) — Stage-2 preference optimization (POST-MVP / optional, §12 P2.5).
+# mlx-lm has no built-in DPO -> path splits: ORPO (preferred, ref-free) via a
+# community/MLX impl, or PyTorch-MPS + TRL (slower, op fallbacks; §16.5).
+# Read by src/train_dpo.py — NOT an mlx_lm.lora config.
+
+method: orpo                 # orpo (ref-free, memory/speed win) | dpo  (§7.6)
+ref_free: true              # ORPO needs no reference model
+
+# §7.4(d) — style-strength <-> stability dial. Higher beta -> closer to SFT
+# (safer, less gyaru); lower -> pushes harder (more gyaru, degeneration risk).
+beta: 0.1
+beta_sweep: [0.1, 0.2, 0.3]  # §16.3 ablation — trade-off curve
+
+base_adapter: "adapters/sft"        # start from the SFT adapter
+adapter_path: "adapters/dpo"
+learning_rate: 5.0e-6        # lower than SFT; preference stage is gentle
+iters: 400
+batch_size: 1
+max_seq_length: 1024
+seed: 42
+
+# §7.4(d) — each `chosen` is paired against MULTIPLE rejected types so the
+# alignment signal is rich. prefs_build.py emits these categories.
+rejected_types:
+  - under_styling      # 밋밋함 — too plain
+  - over_styling       # 도배 — emoji/marker spam, content lost
+  - yaho_misfire       # 야호 오발 — yaho fired in a neutral context
+  - semantic_drift     # 의미이탈/반복 — off-context or repetitive
+
+project:
+  system_prompt: "너는 갸루 말투로 대답하는 AI야."
+  # keep beta from collapsing the SFT distribution (§7.4b) — don't go below sweep min
+  min_beta: 0.1

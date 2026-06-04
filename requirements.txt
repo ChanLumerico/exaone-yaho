@@ -1,0 +1,27 @@
+# Canonical install: `uv pip install -e ".[data,analysis,dev]"` (see pyproject.toml).
+# This file pins the VALIDATED core toolchain (§7.1 Phase-0 gate) for reproducibility.
+
+# --- core (MLX training/inference) ---
+mlx>=0.28
+mlx-lm==0.29.1            # newest mlx-lm allowing transformers<5 (EXAONE-3.5 compat, §7.1)
+transformers==4.57.6     # EXAONE-3.5 remote config is 4.x-era; 5.x breaks rope/auto_map
+huggingface-hub<1.0
+numpy
+pyyaml
+sentencepiece
+protobuf
+
+# --- data synthesis (Phase 1) ---
+kiwipiepy                # morphological analysis (noun/activity extraction, §5.3/§5.4)
+sentence-transformers    # semantic similarity filter + dense scorers
+datasets                 # SmileStyle / AI Hub seed loading
+torch                    # MPS backend for scorers + sentence-transformers
+
+# --- analysis / logging (§17) ---
+pandas
+pyarrow                  # parquet embedding store
+matplotlib
+
+# --- dev ---
+pytest
+ruff

@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# Virtual env
+.venv/
+venv/
+
+# macOS
+.DS_Store
+
+# Model weights & artifacts (large; reproduce via mlx_lm.convert / training)
+models/
+fused/
+adapters/
+scripts/smoke/adapters/
+*.safetensors
+*.npz
+
+# Embedding vectors (out-of-band; index lives in JSONL, §17.2)
+logs/embeddings/*.parquet
+logs/embeddings/*.npy
+
+# Secrets
+.env
+
+# HF cache (if ever localized into the repo)
+.cache/
