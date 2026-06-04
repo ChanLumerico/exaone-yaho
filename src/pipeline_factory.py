@@ -12,6 +12,7 @@ from pathlib import Path
 
 import yaml
 
+from arbiter import MemeArbiter
 from gating import GateParams
 from extractors import KiwiNounExtractor, RuleActivityExtractor
 from parapara_pipeline import ParaParaPipeline
@@ -51,3 +52,17 @@ def build_parapara_pipeline(config_path="configs/gate.yaml", *, rng=None, kiwi=N
         raise NotImplementedError(f"DepartureScorer backend {p['scorer']!r} not yet implemented")
     extractor = RuleActivityExtractor(kiwi=kiwi)
     return ParaParaPipeline(scorer, extractor, ParaParaRenderer(rng=rng or random.Random()), params)
+
+
+def build_arbiter(config_path="configs/gate.yaml", *, rng=None, kiwi=None) -> MemeArbiter:
+    """§5.5 — build a MemeArbiter wiring both pipelines (shares one Kiwi)."""
+    rng = rng or random.Random()
+    if kiwi is None:
+        from kiwipiepy import Kiwi
+        kiwi = Kiwi()
+    arb = _load(config_path)["arbitration"]
+    return MemeArbiter(
+        yaho=build_yaho_pipeline(config_path, rng=rng, kiwi=kiwi),
+        parapara=build_parapara_pipeline(config_path, rng=rng, kiwi=kiwi),
+        departure_priority_threshold=arb["departure_priority_threshold"],
+    )
