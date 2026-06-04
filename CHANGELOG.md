@@ -3,6 +3,18 @@
 All notable changes to this project are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning: [SemVer](https://semver.org).
 
+## [Unreleased] — Phase 1 (gyaru corpus)
+### Added
+- **Gold set** (`data/gold/gold.jsonl`, 50 dialogues): user-handcrafted, then
+  frontier-refined (`scripts/enhance_gold.py`) — §5.5 arbitration fixes, 34%
+  multiturn, marker diversity 32/39, §5.2 katakana (p_kata=0.12, seeded). Adversarial
+  3-reviewer pass. Tooling: `validate_gold.py`, `gold_split.py` (§16.4 ①=16 / meme=34).
+- **Phase 1a — §5.2 decorator** (`src/decorator.py`): `decorate()` (rules 1–5:
+  interjection inject, katakana, boundary emoji/kaomoji, hi-tension endings, tails)
+  + `postprocess()` (rule 6: collapse tail/emoji runs, tidy) + `DecoratorParams`
+  (loaded from `configs/style.yaml`, §11) + `Decorator` (λ sampling). Mechanical
+  categories only; context-only categories left to the stylizer (§5.2 note). 11 tests.
+
 ## [0.1.0] - 2026-06-04
 Phase 0 — Foundation. The repo boots and the EXAONE↔mlx-lm training path is proven.
 
