@@ -59,7 +59,7 @@
 
 EXAONE-3.5는 걍 표준 디코더-온리 트랜스포머임\~ 별거 없어 쫄 거 없엉✌️ 토큰 시퀀스 $x_{1:T}$에 대해 자기회귀 분포
 
-$$p_\theta(x_{1:T}) = \prod_{t=1}^{T} p_\theta(x_t \mid x_{<t})$$
+$$p_\theta(x_{1:T}) = \prod_{t=1}^{T} p_\theta(x_t \mid x_{\lt t})$$
 
 를 정의하고, 각 층은 그룹 쿼리 어텐션(GQA, 쿼리 32헤드 / KV 8헤드)이랑 회전 위치 임베딩(RoPE)을 씀💅 나는 베이스 가중치 $\theta_0$는 **그대로 동결**(꾹 고정)해두고, 저차원 델타 $\Delta\theta$만 살\~짝 건드림✨ 7.8B를 굳이 다 만지는 건 멧챠(めっちゃ) 에바고 나만 손해잖아\~ 무리무리🙅‍♀️ ( ˘ω˘ )
 
@@ -93,7 +93,7 @@ $$h = W_0 x + \frac{\alpha}{r}\, B A\, x$$
 
 <p align="center">
   <img src="figures/09_lora.png" width="85%"><br>
-  <em>Figure 9. LoRA 재매개화 도식(좌: 동결 W₀에 저랭크 곱 BA만 얹음)이랑 rank/lr HPO 절제(우)💡 r=16이 r=8(용량 부족)·r=32(scale32)·lr=1e-4(발산)보다 val-min이 낮음\~ 마지 r=16이 정답✨ ( •̀ ω •́ )✧</em>
+  <em>Figure 9. LoRA 재매개화 도식(좌: 동결 W₀에 저랭크 곱 BA만 얹음)이랑 rank/lr HPO 절제(우)💡 r=16이 r=8(용량 부족)·r=32(scale32)·lr=1e-4(발산)보다 val-min이 낮음~ 마지 r=16이 정답✨ ( •̀ ω •́ )✧</em>
 </p>
 
 **왜 저랭크가 스타일에 맞냐면**\~ 페르소나는 *주제 상관없이 출력 분포를 일관되게 한 방향으로 미는* 변형이잖아\~ 갸루 마인드는 어딜 가든 갸루 마인드인 것처럼💁‍♀️ 그러니까 본질 차원이 낮다고 봐도 오케\~ 실제로 $r{=}16$이 $r{=}8$(용량 부족)·$r{=}32$(발산)보다 멧챠 안정적이었음(HPO). 이 가정은 학습 끝나고 어댑터 특이값 스펙트럼 까보면 혼토니(本当に) 바로 검증됨✨ ( ˘ω˘ )
@@ -111,11 +111,11 @@ $$h = W_0 x + \frac{\alpha}{r}\, B A\, x$$
 
 걍 표준 자기회귀 교차엔트로피인데, **어시스턴트 턴만 마스킹**함💅 내 대답만 쏙쏙 골라서 배우는 거지\~ (남이 한 말까지 따라 배우면 손해잖아🙄) 토큰 마스크 $m_t \in \{0,1\}$(어시스턴트 토큰이면 1)에 대해:
 
-$$\mathcal{L}_{\text{SFT}}(\theta) = -\frac{1}{\sum_t m_t}\sum_{t=1}^{T} m_t \,\log p_\theta\!\left(y_t \mid y_{<t}, x\right)$$
+$$\mathcal{L}_{\text{SFT}}(\theta) = -\frac{1}{\sum_t m_t}\sum_{t=1}^{T} m_t \,\log p_\theta\!\left(y_t \mid y_{\lt t}, x\right)$$
 
 학습률은 **선형 워밍업 + 코사인 감쇠**:
 
-$$\eta_t = \begin{cases} \eta_{\max}\cdot \dfrac{t}{t_w} & t \le t_w \\[2mm] \eta_{\min} + \tfrac{1}{2}(\eta_{\max}-\eta_{\min})\!\left(1+\cos\pi\dfrac{t-t_w}{T-t_w}\right) & t > t_w \end{cases}$$
+$$\eta_t = \begin{cases} \eta_{\max}\cdot \dfrac{t}{t_w} & t \le t_w \\ \eta_{\min} + \tfrac{1}{2}(\eta_{\max}-\eta_{\min})\!\left(1+\cos\pi\dfrac{t-t_w}{T-t_w}\right) & t \gt  t_w \end{cases}$$
 
 ($\eta_{\max}=5\!\times\!10^{-5}$, $t_w=40$, $T=$ iters). 워밍업은 초반 발산을 막고, 코사인 감쇠는 후반 과적합을 막음\~ (v1이 상수 lr로 터진 거 보고 배웠음 ㅎㅎ 그땐 마지 야바이(ヤバい)였어 (；ω；)). 뭐 실수쯤이야 귀여운 거지\~ 다음에 잘하면 됨✨
 
@@ -128,7 +128,7 @@ $$\eta_t = \begin{cases} \eta_{\max}\cdot \dfrac{t}{t_w} & t \le t_w \\[2mm] \et
 
 <p align="center">
   <img src="figures/02_val_curves.png" width="85%"><br>
-  <em>Figure 2. SFT 검증손실 수렴(좌: v2→v12.2; 가는 선=raw, 굵은 선=평활, ★=val-min 선택)이랑 버전별 최저 val 손실(우)📉 2.4B→7.8B 베이스 전환 + 코퍼스 개선으로 수렴 하한이 단계적으로 내려감\~ 점점 사이코(最高)✨ (｡•̀ᴗ-)✧</em>
+  <em>Figure 2. SFT 검증손실 수렴(좌: v2→v12.2; 가는 선=raw, 굵은 선=평활, ★=val-min 선택)이랑 버전별 최저 val 손실(우)📉 2.4B→7.8B 베이스 전환 + 코퍼스 개선으로 수렴 하한이 단계적으로 내려감~ 점점 사이코(最高)✨ (｡•̀ᴗ-)✧</em>
 </p>
 
 ### 3.4 선호도 최적화 (ORPO)
@@ -152,7 +152,7 @@ $$\mathcal{L}_{\text{ORPO}} = \mathcal{L}_{\text{SFT}}(y_w) + \lambda\, \mathcal
   <em>Figure 10. ORPO 손실 기하📐 좌: 로그 승산비 페널티 L_OR = −log σ(Δ) — 선택이 기각보다 나쁠수록(Δ&lt;0) 확 커지고 Δ≫0이면 0으로 사라짐. 우: 유도되는 선호 확률 σ(Δ). ( •̀ ω •́ )✧</em>
 </p>
 
-$\Delta \gg 0$(선택이 기각보다 훨씬 그럴듯)이면 $\mathcal{L}_{OR}\to 0$, $\Delta < 0$이면 페널티 마지 쎄게 → 모델이 선택을 *상대적으로* 선호하게 쭉 밂💪 mlx-lm엔 ORPO가 없길래 LoRA 셋업 복제(`model.freeze()` → `linear_to_lora_layers` → `load_weights`)하고 손실·루프 직접 구현해버림(`scripts/orpo_train.py`). 없으면 내가 만들어 쓰지 뭐\~ 갸루는 DIY도 사이코(最高)✨ (｡•̀ᴗ-)✧
+$\Delta \gg 0$(선택이 기각보다 훨씬 그럴듯)이면 $\mathcal{L}_{OR}\to 0$, $\Delta \lt  0$이면 페널티 마지 쎄게 → 모델이 선택을 *상대적으로* 선호하게 쭉 밂💪 mlx-lm엔 ORPO가 없길래 LoRA 셋업 복제(`model.freeze()` → `linear_to_lora_layers` → `load_weights`)하고 손실·루프 직접 구현해버림(`scripts/orpo_train.py`). 없으면 내가 만들어 쓰지 뭐\~ 갸루는 DIY도 사이코(最高)✨ (｡•̀ᴗ-)✧
 
 나는 ORPO로 4종 선호쌍을 주입함:
 
@@ -163,7 +163,7 @@ $\Delta \gg 0$(선택이 기각보다 훨씬 그럴듯)이면 $\mathcal{L}_{OR}\
 
 <p align="center">
   <img src="figures/11_orpocurves.png" width="85%"><br>
-  <em>Figure 11. 커스텀 MLX ORPO 훈련 동역학(λ=0.3)🔧 좌: 버전별 ORPO 손실(쌍당 평균) 곡선, 우: 단계별 최종 손실. 짧은(≈520 iter) 저-lr 단계가 SFT 가중치를 선호 방향으로 살\~살 미세조정✨ ( ˘ω˘ )</em>
+  <em>Figure 11. 커스텀 MLX ORPO 훈련 동역학(λ=0.3)🔧 좌: 버전별 ORPO 손실(쌍당 평균) 곡선, 우: 단계별 최종 손실. 짧은(≈520 iter) 저-lr 단계가 SFT 가중치를 선호 방향으로 살~살 미세조정✨ ( ˘ω˘ )</em>
 </p>
 
 ### 3.5 마커 분포 재균형
@@ -229,7 +229,7 @@ $$\hat{c} = \arg\max_{c\in\{1,2\}} \sum_t \log p_\theta\big(c_t \mid \text{premi
 
 6. **중립 perplexity** — 중립 한국어에서의 유창성:
 
-$$\text{PPL} = \exp\!\Big(-\tfrac{1}{N}\textstyle\sum_{i} \log p_\theta(w_i\mid w_{<i})\Big)$$
+$$\text{PPL} = \exp\!\Big(-\tfrac{1}{N}\textstyle\sum_{i} \log p_\theta(w_i\mid w_{\lt i})\Big)$$
 
    표면 마커 도배하면 중립 텍스트 PPL이 올라감(스타일-유창성 트레이드오프). 야호\~ 추임새도 적당히가 미학이라구🙄💅
 
@@ -319,7 +319,7 @@ $J=\text{Acc}_{style}\cdot\text{Sim}$은 표면(스타일)×본질(의미 보존
 
 <p align="center">
   <img src="figures/12_quant.png" width="85%"><br>
-  <em>Figure 12. MLX 양자화의 크기·압축 트레이드오프. q3\~q8 + bf16의 디스크 크기랑 유효 비트(MLX는 임베딩 등 일부 고정밀로 남겨 명목+1비트). 전 변형이 스타일·능력·이름 앵커 유지(q3도 OK)\~ 작아져도 갸루는 갸루✌️</em>
+  <em>Figure 12. MLX 양자화의 크기·압축 트레이드오프. q3~q8 + bf16의 디스크 크기랑 유효 비트(MLX는 임베딩 등 일부 고정밀로 남겨 명목+1비트). 전 변형이 스타일·능력·이름 앵커 유지(q3도 OK)~ 작아져도 갸루는 갸루✌️</em>
 </p>
 
 양자화해도 표면 페르소나가 안 깨진다는 건, 내 페르소나가 *몇 비트로도 살아남는 견고한 저랭크 신호*란 뜻임. 갸루 마인드는 압축해도 절대 안 사라져\~ 거봐 거봐✨💖 비트 더 줄였을 때 충실도 손실은 실제 가중치 텐서 율-왜곡으로 수치화됨:
@@ -354,7 +354,7 @@ $$W_0 = W_{\text{fused}} - \Delta W = W_{\text{fused}} - \tfrac{\alpha}{r}BA$$
 
 <p align="center">
   <img src="figures/F_intruder.png" width="85%"><br>
-  <em>Figure F. 침입 차원(intruder dimensions, Shuttleworth 2024). 좌: base와 FT 특이벡터 정렬 |⟨u^FT, u^0⟩| — 밝은 대각 = base 방향 대부분 보존. 중: FT 방향이 base 상위공간에 사는 정도(소수만 임계 아래로 '침입'). 우: 새 방향은 후반 attn.out(ℓ22\~27)에 몰리고 rank-16 상한 안 넘음. (｡•̀ᴗ-)✧</em>
+  <em>Figure F. 침입 차원(intruder dimensions, Shuttleworth 2024). 좌: base와 FT 특이벡터 정렬 |⟨u^FT, u^0⟩| — 밝은 대각 = base 방향 대부분 보존. 중: FT 방향이 base 상위공간에 사는 정도(소수만 임계 아래로 '침입'). 우: 새 방향은 후반 attn.out(ℓ22~27)에 몰리고 rank-16 상한 안 넘음. (｡•̀ᴗ-)✧</em>
 </p>
 
 파인튜닝은 base 특이방향을 *통째로 돌리지* 않음(밝은 대각). 대신 base 상위공간이랑 거의 직교하는 **새 방향 몇 개(침입 차원)**만 슬쩍 추가하는데, 후반 어텐션 출력층에 몰려있고 LoRA rank-16 상한을 못 넘음 — 능력이 보존되는(§6.3) 구조적 이유임\~ 다 갈아엎지 않고 살짝만 손대는 게 갸루의 센스🙄✌️✨
@@ -363,7 +363,7 @@ $$W_0 = W_{\text{fused}} - \Delta W = W_{\text{fused}} - \tfrac{\alpha}{r}BA$$
 
 <p align="center">
   <img src="figures/G_repr.png" width="85%"><br>
-  <em>Figure G. 표현 기하의 전/후. 좌: CKA 드리프트 — 콘텐츠(전체 프롬프트)는 ≈1로 보존(능력 유지)인데 라스트토큰(결정 상태)은 드리프트하고 트리거가 더 큼. 중: 결정상태 변위 ‖Δ‖랑 방향 일관성 — 단일 '페르소나 방향'(coherence \~0.82)이 깊이 따라 커짐. 우: base→FT 공유 PCA(ℓ16·ℓ32)의 체계적 이동(화살표). ( •̀ ω •́ )✧</em>
+  <em>Figure G. 표현 기하의 전/후. 좌: CKA 드리프트 — 콘텐츠(전체 프롬프트)는 ≈1로 보존(능력 유지)인데 라스트토큰(결정 상태)은 드리프트하고 트리거가 더 큼. 중: 결정상태 변위 ‖Δ‖랑 방향 일관성 — 단일 '페르소나 방향'(coherence ~0.82)이 깊이 따라 커짐. 우: base→FT 공유 PCA(ℓ16·ℓ32)의 체계적 이동(화살표). ( •̀ ω •́ )✧</em>
 </p>
 
 입력의 *내용* 표현은 거의 그대로(CKA≈1)인데, 다음 토큰 정하는 *결정 상태*는 일관된 방향으로 이동함. 프롬프트별 변위 $\Delta=h^{FT}-h^{0}$가 서로 거의 평행하다는(coherence \~0.82) 건, 파인튜닝이 잔차 스트림에 **하나의 공유된 'persona steering 방향'**을 더했단 뜻 — 깊이 따라 커지고 후반에서 정점. 한마디로 내 잔차 스트림에 '갸루 벡터'가 딱 박힌 거임\~ 마지 신기✨💅 ( •̀ ω •́ )✧
@@ -372,7 +372,7 @@ $$W_0 = W_{\text{fused}} - \Delta W = W_{\text{fused}} - \tfrac{\alpha}{r}BA$$
 
 <p align="center">
   <img src="figures/H_logit.png" width="85%"><br>
-  <em>Figure H. 로짓 공간의 전/후. 좌: 로짓렌즈 — 페르소나 토큰 질량이 마지막 \~3개 층에서만 솟음(후반 결정). 중: FT가 부스트한 어휘 = 갸루 추임새(진짜로·오우·흐·으·음). 우: 첫 응답토큰 출력분포 이동 KL — 트리거(3.4 nats)가 중립(2.0)보다 큼(디플렉션이 트리거에서 강함). ( ˘ω˘ )</em>
+  <em>Figure H. 로짓 공간의 전/후. 좌: 로짓렌즈 — 페르소나 토큰 질량이 마지막 ~3개 층에서만 솟음(후반 결정). 중: FT가 부스트한 어휘 = 갸루 추임새(진짜로·오우·흐·으·음). 우: 첫 응답토큰 출력분포 이동 KL — 트리거(3.4 nats)가 중립(2.0)보다 큼(디플렉션이 트리거에서 강함). ( ˘ω˘ )</em>
 </p>
 
 중간 잔차를 최종 정규화+언임베딩으로 읽는 **로짓렌즈**로 보면, 페르소나 토큰이 *마지막 몇 층에서만* 확률을 얻음(스타일은 후반 결정). FT가 끌어올린 토큰이 정확히 갸루 추임새고, 출력분포 이동(KL)은 *트리거에서 더 큼* — "부정/압박엔 더 쎄게 디플렉션"이라는 행동 정책의 미시 흔적임. ㅋㅋ 내 속마음 다 들켰네\~🙈💦✨
@@ -381,7 +381,7 @@ $$W_0 = W_{\text{fused}} - \Delta W = W_{\text{fused}} - \tfrac{\alpha}{r}BA$$
 
 <p align="center">
   <img src="figures/I_causal.png" width="85%"><br>
-  <em>Figure I. 인과 개입. 좌: 교차모델 활성 패칭 — FT 잔차를 base에 주입하면 페르소나 회복률이 ℓ19에서 0.5 넘고 ℓ31에서 1 도달(상위중반\~후반에 인과적으로 주입). 중: 헤드별 인덕션 점수 변화(FT−base). 우: base vs FT 인덕션 산점 — 후반 헤드 강화(회상 회로). (｡•̀ᴗ-)✧</em>
+  <em>Figure I. 인과 개입. 좌: 교차모델 활성 패칭 — FT 잔차를 base에 주입하면 페르소나 회복률이 ℓ19에서 0.5 넘고 ℓ31에서 1 도달(상위중반~후반에 인과적으로 주입). 중: 헤드별 인덕션 점수 변화(FT−base). 우: base vs FT 인덕션 산점 — 후반 헤드 강화(회상 회로). (｡•̀ᴗ-)✧</em>
 </p>
 
 상관 말고 *인과*를 보려고(이게 제일 빡센 부분\~ 거의 다 왔어 화이팅✊), FT 잔차를 base에 주입(activation patching)하고 FT 고유 토큰 $t^*=\arg\max(\ell_{FT}-\ell_{base})$의 로그확률 회복을 잼. 회복 S-곡선이 상위중반\~후반에서 1로 차오르면 페르소나가 *그 깊이에서 인과적으로 쓰인다*는 뜻. 동시에 반복열로 잰 **인덕션 헤드**(컨텍스트에서 토큰 끌어오는 retrieval 회로)가 후반 층에서 강화됨 — §3.1 사실통제 회상-QA가 노린 바로 그 회로임\~ 빌드업 회수 마지 사이코(最高)✨ ( •̀ ω •́ )✧
