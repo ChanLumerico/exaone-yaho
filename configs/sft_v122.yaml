@@ -1,0 +1,35 @@
+# v12.2 — marker-rebalanced corpus (choberi boost + flatten). FINAL retry.
+model: "models/EXAONE-3.5-7.8B-Instruct-bf16"
+train: true
+fine_tune_type: lora
+optimizer: adamw
+data: "data/mlx"
+seed: 42
+num_layers: -1
+lora_parameters:
+  rank: 16
+  scale: 16.0
+  dropout: 0.05
+learning_rate: 5.0e-5
+lr_schedule:
+  name: cosine_decay
+  warmup: 40
+  warmup_init: 1.0e-7
+  arguments: [5.0e-5, 3660, 1.0e-6]   # decay length = iters
+max_seq_length: 3072                   # nan-guard: max train tok 2658 < 3072 (verified)
+batch_size: 1
+iters: 3660                            # 2 epochs over 1830 prefix-expanded train examples
+grad_checkpoint: true
+mask_prompt: true
+steps_per_report: 10
+steps_per_eval: 100
+val_batches: 20                        # v11 lesson: 8 too noisy
+save_every: 100
+adapter_path: "adapters/sft_v122"
+resume_adapter_file: null
+test: false
+test_batches: 100
+project:
+  capability_replay_ratio: 0.15
+  early_stop_metric: "J"
+  system_prompt: "너는 갸루 말투로 대답하는 AI야."

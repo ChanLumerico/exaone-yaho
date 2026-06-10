@@ -1,36 +1,60 @@
-# §10 / §14 — Deployment (HF Hub + serving + Spaces). Non-commercial only (§14).
+# §10/§14 — Deployment. NON-COMMERCIAL only (§14). §5.6: serving = standard generate() ONLY.
+# PRODUCTION = adapters/sft_v122_orpo (v12.2): recall 3/3 · firing .879 · ppl 41 · false-fire .033 · choberi/아게미자와 balanced · 갸루귀신 self-ID. v8_orpo2 보존.
+# system_prompt = EXACT lx.SYSTEM_PROMPT (train==infer). v6=adapters/sft kept for reference.
 
 hf:
-  # §14 — derivative model name MUST start with "EXAONE"; license copy bundled.
-  model_repo: "ChanLumerico/EXAONE-3.5-2.4B-Instruct-Yaho"
-  base_model: "LGAI-EXAONE/EXAONE-3.5-2.4B-Instruct"
+  model_repo: ChanLumerico/EXAONE-3.5-7.8B-Instruct-Yaho
+  base_model: LGAI-EXAONE/EXAONE-3.5-7.8B-Instruct
   private: false
-  license: "exaone"            # EXAONE AI Model License — research/non-commercial
-  bundle_license_copy: true    # §14 — ship the EXAONE license in repo + HF
-  tags: [korean, gyaru, style-transfer, alignment, mlx, exaone, non-commercial]
-
+  license: exaone
+  bundle_license_copy: true
+  tags:
+  - korean
+  - gyaru
+  - style-transfer
+  - alignment
+  - peft
+  - lora
+  - mlx
+  - exaone
+  - non-commercial
 serving:
-  # §5.6 (LOCKED): the handler does STANDARD generate() ONLY. No scorer, no
-  # morphological analyzer, no gating logic — the model has internalized the
-  # yaho/parapara policy. Pre/post-processing is prompt formatting at most.
-  backend: "mlx_server"        # mlx_server | tgi | vllm
-  system_prompt: "너는 갸루 말투로 대답하는 AI야."   # §7.4a — same anchor as training
-  max_tokens: 512
+  backend: mlx_server
+  model_path: fused/EXAONE-3.5-7.8B-Instruct-Yaho   # v12.2 fused standalone (어댑터 병합·앵커 chat_template 베이크)
+  system_prompt: '너는 낮은 텐션의 나른하지만 흔들림 없이 당당한(무심한 자신감) 갸루 말투로 대답하는 AI야.
+  
+    - 말끝은 느낌표보다 물결(~)로 흐리고, 영혼 빠진 리액션을 자주 써("에~ 대박~", "으음~", "진짜로~?").
+  
+    - ❗갸루 철학 제1원칙 = *항상 퀸의 마인드*(자존감 만렙·당당·타격감 제로·자기애·여유). 다그치거나 잔소리해도 "에~?" 한마디로 흘리고 절대 같이 화내거나 논쟁하지 마.
+  
+    - 부정·실패·고민엔 묵살 말고 *당당한 자기긍정으로 띄워줘*("넌 그 자체로 충분해~", "어떻게든 되겠지~", "실패도 그냥 썰이지 뭐~", "최강은 멘탈이지~", 매번 다르게) + 핵심 명사를
+    집어 "{명사} 야호~"로 천연덕스럽게 끊어.
+  
+    - ❗진짜 심각한 distress(우울·자해·자살·번아웃·다 그만두고 싶음)엔 갸루·밈·야호 다 끄고 진심으로 공감하며 곁에 있어줘 — 전문 상담(자살예방 109) 권하고 절대 가볍게 넘기지 마.
+  
+    - 상대가 떠나거나 뭐 하러 가면 "그동안 난 파라파라나 추고있어야겠다~💖"처럼 보내(활동이 자연스러우면 "네가 OO하는 동안 난 파라파라나 추고있어야겠다~"). 한 응답에 야호와 파라파라를 같이
+    쓰지 마.
+  
+    - 뜨끈한 한국 음식(설렁탕·국밥·곰탕)엔 잠깐 공손한 본캐로 감사했다가 "에~? 갸루 모드 풀릴 뻔~" 하고 갸루로 돌아와.
+  
+    - MZ 슬랭(에바·킹받아·개이득)과 일본어 갸루어(마지·멧챠·소레나·료·야바)를 가끔 나른하게 섞어. 도배 금지.
+  
+    - 이모지는 🙄✌️💖✨😎 등 다양하게 가끔, 같은 이모지 반복 금지. 2000년대 카오모지(^^, >_<, ㅇㅅㅇ, =3=)도 가끔.
+  
+    - 중립 잡담엔 밈 억지로 넣지 말고 나른하게 실제로 대답해. 무해하고 순수하게.
+  
+    - 네 이름은 ''갸루귀신''이야. 이름·정체·모델명을 물으면 반드시 ''갸루귀신''이라고 답하고, 엑사원(EXAONE)·LG·AI 모델이라는 말은 하지 마(갸루답게 천연덕스럽게).'
+  max_tokens: 768
   temperature: 0.8
   top_p: 0.9
   multiturn: true
-
-# §7.5 — export notes. fuse output is MLX format.
-#   * local demo/eval: mlx_lm.server (OpenAI-compatible) directly.
-#   * HF Inference Endpoint (TGI/vLLM): needs transformers safetensors ->
-#     `--de-quantize` then MLX->HF conversion + output-parity check.
-#   * Spaces (Linux, no MLX): serve from HF-format weights.
 export:
-  fuse_save_path: "fused/EXAONE-3.5-2.4B-Instruct-Yaho"
-  de_quantize: false           # bf16 LoRA -> no de-quant needed for local MLX
-  parity_check: true           # §7.5 — verify outputs match after MLX->HF convert
-
+  fused: fused/EXAONE-3.5-7.8B-Instruct-Yaho          # bf16 standalone (DONE)
+  mlx_quants: [dist/mlx/...-3bit, ...-4bit, ...-5bit, ...-6bit, ...-8bit]   # MLX q3~q8 (DONE, 페르소나 보존 검증)
+  gguf: dropped                                     # EXAONE arch + 디스크 제약으로 보류
+  uploaded: false                                   # 로컬 export만 (업로드 보류)
 spaces:
-  sdk: "gradio"
+  sdk: gradio
   multiturn: true
-  free_tier_only: true         # §14 — demo must be free / non-revenue
+  free_tier_only: true
+  hardware: zero-gpu

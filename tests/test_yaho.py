@@ -60,8 +60,9 @@ def test_object_noun_extracted(kiwi):
 
 def test_activity_extractor_pattern():
     ex = RuleActivityExtractor()
-    assert ex.extract("나 공부하러 도서관 간다") == "공부"
-    assert ex.extract("밥 먹으러 가야겠다") in ("밥 먹", "먹")  # verb-phrase head
+    # v3 — returns a GRAMMATICAL gerund (or None -> generic frame), not a bare stem
+    assert ex.extract("나 공부하러 도서관 간다") == "공부하는"
+    assert ex.extract("밥 먹으러 가야겠다") == "밥 먹는"
     assert ex.extract("그냥 심심해") is None
 
 
@@ -74,11 +75,13 @@ def test_yaho_renderer_format():
 
 
 def test_parapara_renderer_template_and_generic():
-    r = ParaParaRenderer(rng=random.Random(0))
-    out = r.render("공부")
-    assert "공부하는 동안" in out and "파라파라나 추고있어야겠다" in out and "💖" in out
-    generic = r.render(None)
-    assert generic.startswith("그럼 난 파라파라나 추고있어야겠다~") and "💖" in generic
+    # v3 — frame VARIETY: signature phrase + 💖 are invariant across all frames
+    for act in ("공부하는", None):
+        out = ParaParaRenderer(rng=random.Random(0)).render(act)
+        assert "파라파라나 추고있어야겠다" in out and "💖" in out
+    # a grammatical activity frame ("공부하는 동안") fires for some seed
+    assert any("공부하는 동안" in ParaParaRenderer(rng=random.Random(s)).render("공부하는")
+               for s in range(30))
 
 
 # --- pipeline + factory ---------------------------------------------------- #
@@ -98,4 +101,4 @@ def test_factory_loads_gate_params_from_config():
     pipe = build_yaho_pipeline(kiwi=None) if False else None  # avoid double Kiwi build
     from pipeline_factory import _load
     cfg = _load("configs/gate.yaml")["yaho"]
-    assert (cfg["p_base"], cfg["p_max"], cfg["gamma"]) == (0.05, 0.55, 1.5)
+    assert (cfg["p_base"], cfg["p_max"], cfg["gamma"]) == (0.02, 0.80, 1.5)

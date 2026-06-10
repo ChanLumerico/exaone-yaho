@@ -8,7 +8,7 @@ import pytest
 from decorator import DecoratorParams, Decorator, decorate, postprocess
 
 JP = re.compile(r"[぀-ヿ一-鿿]")  # hiragana / katakana / CJK
-MECH_CATS = ("interjection", "emphasis", "filler", "agreement")
+MECH_CATS = ("interjection", "emphasis", "filler")
 MECH_MARKERS = {t for c in MECH_CATS for (t, _o) in lx.LEXICON[c]} | {
     o for c in MECH_CATS for (_t, o) in lx.LEXICON[c]
 }
@@ -28,7 +28,7 @@ def mkparams(**over) -> DecoratorParams:
 def test_from_yaml_loads_real_config():
     p = DecoratorParams.from_yaml()
     assert p.lambda_range == (0.2, 0.6)
-    assert p.p_kata == pytest.approx(0.12)
+    assert p.p_kata == pytest.approx(0.55)
     assert set(p.mechanical_categories) == set(MECH_CATS)
 
 

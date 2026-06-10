@@ -32,3 +32,22 @@ logs/embeddings/*.npy
 
 # Unused raw seed after PersonaChat pivot (re-fetchable)
 data/seed/smilestyle_dataset.tsv
+
+# Claude
+CLAUDE.md
+CHANGELOG.md
+DESIGN.md
+PERSONA.md
+RUNS.md
+
+test.bak
+
+logs/
+
+# Deploy artifacts (large MLX quants; reproduce via fuse + mlx_lm convert -q)
+dist/
+
+# Experiment artifacts — kept local, not pushed
+*.log
+*.pid
+runs/

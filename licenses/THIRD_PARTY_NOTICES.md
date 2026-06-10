@@ -34,6 +34,6 @@ governed by its own license; users must comply with all of them.
   License 1.1-NC above — i.e., the overall artifact is **non-commercial**.
 
 ## Persona note (§14)
-Inspired by gyaru culture and the RESCENE/Minami meme lineage. This is a gyaru *style*
+Inspired by gyaru culture and the 케이팝/Yaho meme lineage. This is a gyaru *style*
 model, **not** an impersonation of, or endorsed by, any real individual or group. No real
 person's content is reproduced; training data is synthesized.

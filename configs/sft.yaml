@@ -3,7 +3,7 @@
 # Confirmed base: EXAONE-3.5-2.4B, bf16 (full precision) MLX, plain LoRA (§7.1).
 
 # Path to the bf16 MLX-converted base (produced by `mlx_lm.convert`, no -q).
-model: "models/EXAONE-3.5-2.4B-Instruct-bf16"
+model: "models/EXAONE-3.5-7.8B-Instruct-bf16"   # v4 — upgraded base (7.8B) for technical accuracy
 train: true
 fine_tune_type: lora              # §7.3 — lora (default); dora/full also possible
 optimizer: adamw
@@ -14,14 +14,18 @@ seed: 42                          # reproducibility (§11, §17.3)
 num_layers: -1                    # -1 = apply LoRA to all transformer layers (thin, low-rank)
 lora_parameters:
   rank: 16                        # §7.3 r=16 (§7.4: 8–16; style is a low-rank delta)
-  scale: 32.0                     # mlx `scale` == LoRA alpha; §7.3 alpha=32
+  scale: 16.0                     # mlx scale = LoRA 델타 직접 배수(기본20); 16=스타일에 적당(§7.4d 강도 다이얼)
   dropout: 0.05
-learning_rate: 1.0e-4             # §7.4f — conservative, 1e-4~2e-4, suppress forgetting
-lr_schedule: null
-max_seq_length: 1024              # §7.3 seq 1024
-batch_size: 2                     # 2.4B bf16 LoRA on 36GB has headroom (§7.3)
+learning_rate: 5.0e-5             # §7.4f — conservative, 1e-4~2e-4, suppress forgetting
+lr_schedule:                      # v2 — 발산 방지: warmup + cosine decay
+  name: cosine_decay
+  warmup: 40
+  warmup_init: 1.0e-7
+  arguments: [5.0e-5, 2618, 1.0e-6]   # v4 — decay length = iters
+max_seq_length: 3072              # v6 — 800tok 답변으로 길어짐(MAX 2595); 17 examples>2048 -> nan 가드
+batch_size: 1                     # v4 — 7.8B bf16 on 36GB: batch 1 for memory safety
 # iters ≈ epochs(2~4) * n_train / batch_size — recompute when corpus size known (§7.4f)
-iters: 600
+iters: 2618                       # v4 — 2 epochs over 1309 prefix-expanded train examples (batch 1)
 grad_checkpoint: true             # memory safety on Apple Silicon
 
 # §7.2 — chat format ({"messages":[...]}); mask non-assistant turns so only the
@@ -30,9 +34,9 @@ mask_prompt: true
 
 # --- reporting / eval / checkpoints (logged to JSONL via §17) --------------- #
 steps_per_report: 10
-steps_per_eval: 50
-val_batches: 25
-save_every: 100
+steps_per_eval: 25             # v3 — align with save_every so val-min checkpoint is saved
+val_batches: 8
+save_every: 25                 # v3 — == steps_per_eval (capture the val-minimum)
 adapter_path: "adapters/sft"
 resume_adapter_file: null
 test: false
