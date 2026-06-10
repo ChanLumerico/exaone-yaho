@@ -32,7 +32,7 @@ def _serving_config(config_path: str = "configs/deploy.yaml") -> dict:
 def chat(
     messages: list[dict[str, str]],
     *,
-    model_path: str = "models/EXAONE-3.5-2.4B-Instruct-bf16",
+    model_path: str = "models/EXAONE-3.5-7.8B-Instruct-bf16",
     adapter_path: str | None = "adapters/sft",
     config_path: str = "configs/deploy.yaml",
     max_tokens: int | None = None,

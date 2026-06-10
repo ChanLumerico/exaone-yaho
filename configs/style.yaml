@@ -3,7 +3,7 @@
 
 decorator:
   lambda_range: [0.2, 0.6]          # §5.2 rule 1 — interjection density, sampled per-sample
-  p_kata: 0.12                      # §5.2 rule 2 — keep katakana/original instead of transliteration
+  p_kata: 0.55                      # v3 — katakana 대폭↑ (clean fixed-set; malformed/English leaks filtered in data_build)
   p_tail_after_marker: 0.7          # §5.2 rule 5 — append a TAIL (~ ^ !) after a gyaru marker
   emoji_boundary_prob_factor: 0.5   # §5.2 rule 3 — per word-boundary emoji prob = lambda * factor
   ending_emoji_count: [1, 3]        # §5.2 — emojis appended at clause end
@@ -16,17 +16,17 @@ decorator:
     max_tail_run: 2
 
   # §5.2 note — only these categories are injected mechanically (context-free)
-  mechanical_categories: [interjection, emphasis, filler, agreement]
+  mechanical_categories: [interjection, emphasis, filler]
   # context-dependent categories are the stylizer's job (S_LLM), not the decorator's
-  context_only_categories: [affection, fandom, greeting, reaction]
+  context_only_categories: [affection, fandom, greeting, reaction, agreement]
 
 # §7.4(e) — style-strength controllability. A system-prompt strength label maps
 # to a decorator lambda so inference can toggle intensity (약/보통/강).
 style_strength:
-  labels: [약, 보통, 강]
+  labels: [weak, medium, strong]
   lambda_by_label:
-    약: 0.25
-    보통: 0.40
-    강: 0.55
+    weak: 0.25
+    medium: 0.40
+    strong: 0.55
   # fraction of SFT samples that carry an explicit strength label (§7.4e)
   labeled_fraction: 0.3
