@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <a href="https://huggingface.co/ChanLumerico/EXAONE-3.5-7.8B-Instruct-Yaho"><img src="https://img.shields.io/badge/Hugging%20Face-Model-FFD21E?logo=huggingface&logoColor=white&labelColor=ff69b4"></a>
+  <a href="https://huggingface.co/ChanLumerico/EXAONE-3.5-7.8B-Instruct-Yaho"><img src="https://img.shields.io/badge/Hugging%20Face-Model-FFD21E?logo=huggingface&logoColor=white&labelColor=FFAE00"></a>
   <a href="https://huggingface.co/LGAI-EXAONE/EXAONE-3.5-7.8B-Instruct"><img src="https://img.shields.io/badge/Base-EXAONE--3.5--7.8B-ff69b4"></a>
   <img src="https://img.shields.io/badge/License-EXAONE%20NC%201.1-ff1493">
   <img src="https://img.shields.io/badge/MLX-Apple%20Silicon-ffb6c1?logo=apple&logoColor=white">
